@@ -110,8 +110,15 @@ if(NOT OLLAMA_HAVE_LLAMA_SERVER)
         message(FATAL_ERROR "llama/server is required for local Ollama builds")
     endif()
 else()
-    file(READ "${CMAKE_SOURCE_DIR}/LLAMA_CPP_VERSION" OLLAMA_LLAMA_CPP_GIT_TAG)
-    string(STRIP "${OLLAMA_LLAMA_CPP_GIT_TAG}" OLLAMA_LLAMA_CPP_GIT_TAG)
+    file(READ "${CMAKE_SOURCE_DIR}/LLAMA_CPP_VERSION" _ollama_llama_cpp_git_tag)
+    string(STRIP "${_ollama_llama_cpp_git_tag}" _ollama_llama_cpp_git_tag)
+    set(OLLAMA_LLAMA_CPP_GIT_TAG "${_ollama_llama_cpp_git_tag}" CACHE STRING "llama.cpp Git tag or commit")
+    option(OLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH
+        "Skip the Laguna Metal compatibility patch for llama.cpp forks without Laguna"
+        OFF)
+    option(OLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH
+        "Use compatibility hooks rebased for the Prism-ML llama.cpp fork"
+        OFF)
     include(${CMAKE_SOURCE_DIR}/llama/compat/compat.cmake)
     if(DEFINED FETCHCONTENT_SOURCE_DIR_LLAMA_CPP AND NOT "${FETCHCONTENT_SOURCE_DIR_LLAMA_CPP}" STREQUAL "")
         get_filename_component(OLLAMA_LLAMA_CPP_SOURCE_DIR
@@ -125,8 +132,11 @@ else()
         add_custom_target(ollama-llama-cpp-source)
     else()
         set(OLLAMA_LLAMA_CPP_SOURCE_DIR "${CMAKE_BINARY_DIR}/_deps/llama_cpp-src")
+        set(OLLAMA_LLAMA_CPP_REPOSITORY
+            "https://github.com/ggml-org/llama.cpp.git"
+            CACHE STRING "llama.cpp Git repository")
         ExternalProject_Add(ollama-llama-cpp-source
-            GIT_REPOSITORY "https://github.com/ggml-org/llama.cpp.git"
+            GIT_REPOSITORY ${OLLAMA_LLAMA_CPP_REPOSITORY}
             GIT_TAG ${OLLAMA_LLAMA_CPP_GIT_TAG}
             GIT_SHALLOW TRUE
             SOURCE_DIR ${OLLAMA_LLAMA_CPP_SOURCE_DIR}

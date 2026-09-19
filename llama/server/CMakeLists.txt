@@ -114,6 +114,7 @@ include(FetchContent)
 # Read pinned llama.cpp commit from version file (shared with Dockerfile)
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../../LLAMA_CPP_VERSION" LLAMA_CPP_GIT_TAG)
 string(STRIP "${LLAMA_CPP_GIT_TAG}" LLAMA_CPP_GIT_TAG)
+set(OLLAMA_LLAMA_CPP_GIT_TAG "${LLAMA_CPP_GIT_TAG}" CACHE STRING "llama.cpp Git tag or commit")
 
 # Allow local source override via environment variable (like OLLAMA_MLX_SOURCE)
 if(DEFINED ENV{OLLAMA_LLAMA_CPP_SOURCE})
@@ -121,6 +122,13 @@ if(DEFINED ENV{OLLAMA_LLAMA_CPP_SOURCE})
     set(FETCHCONTENT_SOURCE_DIR_LLAMA_CPP "${_src}" CACHE PATH "" FORCE)
     message(STATUS "Using local llama.cpp source: ${_src}")
 endif()
+
+option(OLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH
+    "Skip the Laguna Metal compatibility patch for llama.cpp forks without Laguna"
+    OFF)
+option(OLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH
+    "Use compatibility hooks rebased for the Prism-ML llama.cpp fork"
+    OFF)
 
 # Ollama-compat shim: overlays the fetched llama.cpp source with a small
 # in-memory translation layer for existing published model blobs.
@@ -178,10 +186,14 @@ set(LLAMA_CURL OFF CACHE BOOL "" FORCE)
 set(LLAMA_OPENSSL OFF CACHE BOOL "" FORCE)
 set(LLAMA_SUBPROCESS OFF CACHE BOOL "" FORCE)
 
+set(OLLAMA_LLAMA_CPP_REPOSITORY
+    "https://github.com/ggml-org/llama.cpp.git"
+    CACHE STRING "llama.cpp Git repository")
+
 FetchContent_Declare(
     llama_cpp
-    GIT_REPOSITORY "https://github.com/ggml-org/llama.cpp.git"
-    GIT_TAG ${LLAMA_CPP_GIT_TAG}
+    GIT_REPOSITORY ${OLLAMA_LLAMA_CPP_REPOSITORY}
+    GIT_TAG ${OLLAMA_LLAMA_CPP_GIT_TAG}
     GIT_SHALLOW TRUE
     ${_ollama_compat_patch_cmd}
 )

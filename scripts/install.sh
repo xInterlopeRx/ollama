@@ -40,6 +40,7 @@ case "$ARCH" in
 esac
 
 VER_PARAM="${OLLAMA_VERSION:+?version=$OLLAMA_VERSION}"
+OLLAMA_DOWNLOAD_BASE_URL="${OLLAMA_DOWNLOAD_BASE_URL:-https://ollama.com/download}"
 
 ###########################################
 # macOS
@@ -55,7 +56,7 @@ if [ "$OS" = "Darwin" ]; then
         exit 1
     fi
 
-    DOWNLOAD_URL="https://ollama.com/download/Ollama-darwin.zip${VER_PARAM}"
+    DOWNLOAD_URL="${OLLAMA_DOWNLOAD_BASE_URL}/Ollama-darwin.zip${VER_PARAM}"
 
     if pgrep -x Ollama >/dev/null 2>&1; then
         status "Stopping running Ollama instance..."
@@ -168,7 +169,23 @@ fi
 status "Installing ollama to $OLLAMA_INSTALL_DIR"
 $SUDO install -o0 -g0 -m755 -d $BINDIR
 $SUDO install -o0 -g0 -m755 -d "$OLLAMA_INSTALL_DIR/lib/ollama"
-download_and_extract "https://ollama.com/download" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}"
+download_and_extract "$OLLAMA_DOWNLOAD_BASE_URL" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}"
+
+OLLAMA_INSTALL_VARIANT="${OLLAMA_INSTALL_VARIANT:-}"
+if [ -z "$OLLAMA_INSTALL_VARIANT" ] && [ -z "${OLLAMA_NONINTERACTIVE:-}" ] && [ -r /dev/tty ]; then
+    echo "Select Ollama installation variant:" > /dev/tty
+    echo "  1) Automatic hardware detection" > /dev/tty
+    echo "  2) CPU only" > /dev/tty
+    echo "  3) ROCm" > /dev/tty
+    printf "Choice [1]: " > /dev/tty
+    IFS= read -r OLLAMA_INSTALL_CHOICE < /dev/tty || OLLAMA_INSTALL_CHOICE=1
+    case "$OLLAMA_INSTALL_CHOICE" in
+        2) OLLAMA_INSTALL_VARIANT=cpu ;;
+        3) OLLAMA_INSTALL_VARIANT=rocm ;;
+        *) OLLAMA_INSTALL_VARIANT=auto ;;
+    esac
+fi
+OLLAMA_INSTALL_VARIANT="${OLLAMA_INSTALL_VARIANT:-auto}"
 
 if [ "$OLLAMA_INSTALL_DIR/bin/ollama" != "$BINDIR/ollama" ] ; then
     status "Making ollama accessible in the PATH in $BINDIR"
@@ -178,9 +195,9 @@ fi
 # Check for NVIDIA JetPack systems with additional downloads
 if [ -f /etc/nv_tegra_release ] ; then
     if grep R36 /etc/nv_tegra_release > /dev/null ; then
-        download_and_extract "https://ollama.com/download" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}-jetpack6"
+        download_and_extract "$OLLAMA_DOWNLOAD_BASE_URL" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}-jetpack6"
     elif grep R35 /etc/nv_tegra_release > /dev/null ; then
-        download_and_extract "https://ollama.com/download" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}-jetpack5"
+        download_and_extract "$OLLAMA_DOWNLOAD_BASE_URL" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}-jetpack5"
     else
         warning "Unsupported JetPack version detected.  GPU may not be supported"
     fi
@@ -291,6 +308,19 @@ check_gpu() {
     esac
 }
 
+if [ "$OLLAMA_INSTALL_VARIANT" = cpu ]; then
+    install_success
+    status "CPU-only installation selected."
+    exit 0
+fi
+
+if [ "$OLLAMA_INSTALL_VARIANT" = rocm ]; then
+    download_and_extract "$OLLAMA_DOWNLOAD_BASE_URL" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}-rocm"
+    install_success
+    status "ROCm installation selected."
+    exit 0
+fi
+
 if check_gpu nvidia-smi; then
     status "NVIDIA GPU installed."
     exit 0
@@ -303,7 +333,7 @@ if ! check_gpu lspci nvidia && ! check_gpu lshw nvidia && ! check_gpu lspci amdg
 fi
 
 if check_gpu lspci amdgpu || check_gpu lshw amdgpu; then
-    download_and_extract "https://ollama.com/download" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}-rocm"
+    download_and_extract "$OLLAMA_DOWNLOAD_BASE_URL" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}-rocm"
 
     install_success
     status "AMD GPU ready."

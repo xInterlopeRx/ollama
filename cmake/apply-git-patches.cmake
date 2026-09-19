@@ -36,6 +36,13 @@ foreach(_patch_entry IN LISTS _patch_entries)
     string(REGEX REPLACE "^[^|]*\\|" "" PATCH_FILE "${_patch_entry}")
     file(RELATIVE_PATH _patch_rel "${PATCH_DIR}" "${PATCH_FILE}")
 
+    if((DEFINED PATCH_EXCLUDE_HOOKS AND _patch_rel STREQUAL "${PATCH_EXCLUDE_HOOKS}")
+        OR (DEFINED PATCH_EXCLUDE_LAGUNA AND _patch_rel STREQUAL "${PATCH_EXCLUDE_LAGUNA}")
+        OR (DEFINED PATCH_EXCLUDE AND _patch_rel STREQUAL "${PATCH_EXCLUDE}"))
+        message(STATUS "${PATCH_LABEL}: skipping excluded ${_patch_rel}")
+        continue()
+    endif()
+
     # If the patch can be REVERSED cleanly, it's already applied. Skip.
     execute_process(
         COMMAND ${CMAKE_COMMAND} -E env ${_git_apply_env}

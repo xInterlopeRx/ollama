@@ -55,7 +55,7 @@ The official [Ollama Docker image](https://hub.docker.com/r/ollama/ollama) `olla
 ollama
 ```
 
-You'll be prompted to run a model or connect Ollama to your existing agents or applications such as `Claude Code`, `OpenClaw`, `OpenCode` , `Codex`, `Copilot`,  and more.
+You'll be prompted to run a model or connect Ollama to your existing agents or applications such as `Claude Code`, `OpenClaw`, `OpenCode` , `Codex`, `Copilot`, and more.
 
 ### Coding
 
@@ -103,6 +103,54 @@ curl http://localhost:11434/api/chat -d '{
 ```
 
 See the [API documentation](https://docs.ollama.com/api) for all endpoints.
+
+## Building from source
+
+Install CMake 3.24 or newer, a C/C++ compiler, and Go. From the repository root:
+
+```shell
+cmake -B build .
+cmake --build build --parallel 8
+./ollama serve
+```
+
+Build only the ROCm backend:
+
+```shell
+cmake -B build . \
+  -DOLLAMA_LLAMA_BACKENDS=rocm_v7_2 \
+  -DOLLAMA_MLX_BACKENDS=
+cmake --build build --parallel 8
+```
+
+Build against the Prism-ML llama.cpp fork:
+
+```shell
+cmake -B build . \
+  -DOLLAMA_LLAMA_CPP_REPOSITORY=https://github.com/Mintplex-Labs/prism-ml-llama.cpp.git \
+  -DOLLAMA_LLAMA_CPP_GIT_TAG=520d93d8a8fd0ac84c0fa92d4568a68b14d495f0 \
+  -DOLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH=ON \
+  -DOLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH=ON
+cmake --build build --parallel 8
+```
+
+Create local Linux archives with Docker:
+
+```shell
+./scripts/build_linux.sh
+python3 -m http.server 8000 --directory dist
+```
+
+Install those local archives from another terminal:
+
+```shell
+OLLAMA_DOWNLOAD_BASE_URL=http://127.0.0.1:8000 \
+  sh scripts/install.sh
+```
+
+Linux archives use `.tar.zst` (with `.tgz` fallback); macOS uses `.zip`.
+
+See the [full development guide](docs/development.md) for prerequisites and platform-specific builds.
 
 ### Python
 

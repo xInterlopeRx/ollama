@@ -34,10 +34,21 @@ get_filename_component(_ollama_patch_applier
 # Instead, llama/server/CMakeLists.txt does target_sources() on the llama
 # target after FetchContent_MakeAvailable. That keeps Ollama's code in
 # Ollama's tree and makes the patch pure call-site insertions.
+set(_ollama_compat_patch_args)
+if(OLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH)
+    list(APPEND _ollama_compat_patch_args -DPATCH_EXCLUDE_HOOKS=001-upstream-llama-cpp-hooks.patch)
+else()
+    list(APPEND _ollama_compat_patch_args -DPATCH_EXCLUDE_HOOKS=001-llama-cpp-hooks.patch)
+endif()
+if(OLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH)
+    list(APPEND _ollama_compat_patch_args -DPATCH_EXCLUDE_LAGUNA=models/003-llama-cpp-laguna-metal.patch)
+endif()
+
 set(OLLAMA_LLAMA_CPP_COMPAT_PATCH_COMMAND
     ${CMAKE_COMMAND}
         -DPATCH_DIR=${_compat_dir}
         -DPATCH_LABEL=llama/compat
+        ${_ollama_compat_patch_args}
         -P ${_ollama_patch_applier}
     CACHE INTERNAL "llama.cpp compat patch command for FetchContent")
 
