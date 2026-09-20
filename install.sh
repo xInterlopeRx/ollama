@@ -30,7 +30,14 @@ if [ "$DRY_RUN" = 1 ] && [ "$INSTALL" = 1 ]; then
 fi
 
 TEMP_DIR=$(mktemp -d)
-cleanup() { rm -rf $TEMP_DIR; }
+CLEANUP_SUDO=
+cleanup() {
+    if [ -n "$CLEANUP_SUDO" ]; then
+        $CLEANUP_SUDO rm -rf "$TEMP_DIR"
+    else
+        rm -rf "$TEMP_DIR"
+    fi
+}
 trap cleanup EXIT
 
 available() { command -v $1 >/dev/null; }
@@ -81,6 +88,7 @@ build_from_source() {
             error "Cannot access Docker Buildx. Add your user to the docker group, start Docker, or run this command with sudo."
         fi
     fi
+    CLEANUP_SUDO="$DOCKER_SUDO"
 
     SOURCE_REPOSITORY="${OLLAMA_SOURCE_REPOSITORY:-https://github.com/xInterlopeRx/ollama.git}"
     SOURCE_REF="${OLLAMA_SOURCE_REF:-main}"
