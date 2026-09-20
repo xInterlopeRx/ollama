@@ -3,11 +3,14 @@ name: docs-build
 on:
   push:
     branches:
-      - docs
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  CMAKE_VERSION: 3.31.2
 
 jobs:
   build:
@@ -19,7 +22,7 @@ jobs:
       matrix:
         include:
           - name: cpu
-            container: ubuntu:22.04
+            container: ubuntu:24.04
             cmake_args: -DOLLAMA_LLAMA_BACKENDS= -DOLLAMA_MLX_BACKENDS=
             target: ollama-local
             artifact: ollama-linux-amd64-cpu
@@ -37,7 +40,23 @@ jobs:
           set -euo pipefail
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-            build-essential ca-certificates cmake curl git golang-go zstd
+            build-essential ca-certificates curl git zstd xz-utils
+
+          curl -fsSL "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" \
+            | tar xz -C /usr/local --strip-components 1
+
+          GO_VERSION=$(awk '/^go / { print $2 }' go.mod)
+          case "$(dpkg --print-architecture)" in
+            amd64) GO_ARCH=amd64 ;;
+            arm64) GO_ARCH=arm64 ;;
+            *) echo "Unsupported Go architecture: $(dpkg --print-architecture)" >&2; exit 1 ;;
+          esac
+          rm -rf /usr/local/go
+          curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz" \
+            | tar xz -C /usr/local
+          export PATH="/usr/local/go/bin:${PATH}"
+          go version
+          cmake --version | head -n 1
 
       - name: Configure
         shell: bash

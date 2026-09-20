@@ -234,3 +234,7 @@ does not install the host ROCm, CUDA, kernel, or GPU driver stack.
 can also be started manually. It builds the default Prism CPU and ROCm targets
 in containers, then uploads `.tar.zst` archives, the installer, and SHA-256
 files as workflow artifacts for 14 days.
+
+The workflow runs on GitHub-hosted Actions runners. It installs CMake 3.31.2
+and the exact Go version declared in `go.mod`, rather than relying on the
+container distribution versions.
