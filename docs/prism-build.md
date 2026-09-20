@@ -287,6 +287,18 @@ OLLAMA_DOWNLOAD_BASE_URL=http://127.0.0.1:8000 \
   sh scripts/install.sh
 ```
 
+To use the archives directly without starting a web server, point the
+installer at the local `dist` directory:
+
+```sh
+OLLAMA_DOWNLOAD_BASE_URL="$PWD/dist" \
+  OLLAMA_INSTALL_VARIANT=rocm \
+  sh scripts/install.sh
+```
+
+The installer also accepts the equivalent `file://` form. It uses a matching
+local `.tar.zst` or `.tgz` archive and does not invoke `curl`.
+
 The installer menu offers automatic detection, CPU-only, and ROCm. For
 noninteractive installs:
 

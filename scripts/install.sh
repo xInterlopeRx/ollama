@@ -195,6 +195,27 @@ download_and_extract() {
     local dest_dir="$2"
     local filename="$3"
 
+    case "$url_base" in
+        file://*) url_base="${url_base#file://}" ;;
+    esac
+
+    if [ -d "$url_base" ]; then
+        if [ -f "$url_base/${filename}.tar.zst" ]; then
+            if ! available zstd; then
+                error "This local archive requires zstd for extraction. Please install zstd and try again."
+            fi
+            status "Using local ${filename}.tar.zst"
+            zstd -d -c "$url_base/${filename}.tar.zst" | $SUDO tar -xf - -C "$dest_dir"
+            return 0
+        fi
+        if [ -f "$url_base/${filename}.tgz" ]; then
+            status "Using local ${filename}.tgz"
+            $SUDO tar -xzf "$url_base/${filename}.tgz" -C "$dest_dir"
+            return 0
+        fi
+        error "Local archive not found for ${filename} in ${url_base}"
+    fi
+
     # Check if .tar.zst is available
     if curl --fail --silent --head --location "${url_base}/${filename}.tar.zst${VER_PARAM}" >/dev/null 2>&1; then
         # zst file exists - check if we have zstd tool
