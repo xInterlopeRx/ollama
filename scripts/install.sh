@@ -48,8 +48,13 @@ build_from_source() {
             error "Source builds require '$TOOL' in PATH."
         fi
     done
+    DOCKER_COMMAND=docker
     if ! docker buildx version >/dev/null 2>&1; then
-        error "Source builds require Docker Buildx."
+        if available sudo && sudo docker buildx version >/dev/null 2>&1; then
+            DOCKER_COMMAND="sudo docker"
+        else
+            error "Cannot access Docker Buildx. Add your user to the docker group, start Docker, or run this command with sudo."
+        fi
     fi
 
     SOURCE_REPOSITORY="${OLLAMA_SOURCE_REPOSITORY:-https://github.com/xInterlopeRx/ollama.git}"
@@ -65,7 +70,7 @@ build_from_source() {
     status "Building the full local Linux payload with Docker Buildx..."
     (
         cd "$SOURCE_DIR"
-        PLATFORM="$SOURCE_PLATFORM" ./scripts/build_linux.sh
+        DOCKER="$DOCKER_COMMAND" PLATFORM="$SOURCE_PLATFORM" ./scripts/build_linux.sh
     )
 
     cp "$SOURCE_DIR"/dist/ollama-linux-*.tar.zst "$SOURCE_OUTPUT/"

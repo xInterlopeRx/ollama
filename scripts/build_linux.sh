@@ -17,6 +17,8 @@ set -eu
 
 . $(dirname $0)/env.sh
 
+DOCKER=${DOCKER:-docker}
+
 # Check for required tools
 if ! command -v zstd >/dev/null 2>&1; then
     echo "ERROR: zstd is required but not installed." >&2
@@ -32,7 +34,7 @@ rm -rf dist/bin dist/lib dist/linux_amd64 dist/linux_arm64
 rm -f dist/ollama-linux-*.tar.zst
 mkdir -p dist
 
-docker buildx build \
+${DOCKER} buildx build \
         --output type=local,dest=./dist/ \
         --platform=${PLATFORM} \
         ${OLLAMA_COMMON_BUILD_ARGS} \
