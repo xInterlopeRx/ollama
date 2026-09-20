@@ -123,14 +123,15 @@ cmake -B build . \
 cmake --build build --parallel 8
 ```
 
-Build against the Prism-ML llama.cpp fork:
+The default build uses Prism-ML llama.cpp at commit `520d93d8`. To build against
+the upstream `ggml-org/llama.cpp` repository instead, provide all overrides:
 
 ```shell
 cmake -B build . \
-  -DOLLAMA_LLAMA_CPP_REPOSITORY=https://github.com/Mintplex-Labs/prism-ml-llama.cpp.git \
-  -DOLLAMA_LLAMA_CPP_GIT_TAG=520d93d8a8fd0ac84c0fa92d4568a68b14d495f0 \
-  -DOLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH=ON \
-  -DOLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH=ON
+  -DOLLAMA_LLAMA_CPP_REPOSITORY=https://github.com/ggml-org/llama.cpp.git \
+  -DOLLAMA_LLAMA_CPP_GIT_TAG=b10969 \
+  -DOLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH=OFF \
+  -DOLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH=OFF
 cmake --build build --parallel 8
 ```
 

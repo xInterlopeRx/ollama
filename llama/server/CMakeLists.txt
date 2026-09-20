@@ -125,10 +125,10 @@ endif()
 
 option(OLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH
     "Skip the Laguna Metal compatibility patch for llama.cpp forks without Laguna"
-    OFF)
+    ON)
 option(OLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH
     "Use compatibility hooks rebased for the Prism-ML llama.cpp fork"
-    OFF)
+    ON)
 
 # Ollama-compat shim: overlays the fetched llama.cpp source with a small
 # in-memory translation layer for existing published model blobs.
@@ -187,7 +187,7 @@ set(LLAMA_OPENSSL OFF CACHE BOOL "" FORCE)
 set(LLAMA_SUBPROCESS OFF CACHE BOOL "" FORCE)
 
 set(OLLAMA_LLAMA_CPP_REPOSITORY
-    "https://github.com/ggml-org/llama.cpp.git"
+    "https://github.com/Mintplex-Labs/prism-ml-llama.cpp.git"
     CACHE STRING "llama.cpp Git repository")
 
 FetchContent_Declare(

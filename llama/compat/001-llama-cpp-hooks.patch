@@ -68,14 +68,14 @@ diff --git a/tools/mtmd/clip.cpp b/tools/mtmd/clip.cpp
                  if (!fin) {
 @@ -3299,3 +3307,11 @@ int clip_n_mmproj_embd(const struct clip_ctx * ctx) {
  int clip_n_mmproj_embd(const struct clip_ctx * ctx) {
-+const auto projector_type = PROJECTOR_TYPE_NAMES.find(ctx->model.proj_type);
-+if (projector_type != PROJECTOR_TYPE_NAMES.end()) {
-+    if (int n = llama_ollama_compat::maybe_clip_mmproj_embd(
-+            projector_type->second.c_str(),
-+            ctx->model.hparams.projection_dim); n > 0) {
-+        return n;
++    const auto projector_type = PROJECTOR_TYPE_NAMES.find(ctx->model.proj_type);
++    if (projector_type != PROJECTOR_TYPE_NAMES.end()) {
++        if (int n = llama_ollama_compat::maybe_clip_mmproj_embd(
++                projector_type->second.c_str(),
++                ctx->model.hparams.projection_dim); n > 0) {
++            return n;
++        }
 +    }
-+}
      switch (ctx->model.proj_type) {
          case PROJECTOR_TYPE_LDP:
 \ No newline at end of file
