@@ -256,6 +256,9 @@ func (tt TensorType) blockSize() int64 {
 		tensorTypeIQ4_NL,
 		TensorTypeMXFP4:
 		return 32
+	case tensorTypeTQ1_0,
+		tensorTypeTQ2_0:
+		return 256
 	default:
 		return 256
 	}
@@ -301,9 +304,6 @@ func (tt TensorType) String() string {
 		return "iq2_xs"
 	case tensorTypeIQ3_XXS:
 		return "iq3_xxs"
-	case tensorTypeTQ1_0,
-		tensorTypeTQ2_0:
-		return 256
 	case tensorTypeIQ1_S:
 		return "iq1_s"
 	case tensorTypeIQ4_NL:
