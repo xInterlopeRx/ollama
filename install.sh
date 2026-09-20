@@ -15,6 +15,14 @@ status() { echo ">>> $*" >&2; }
 error() { echo "${red}ERROR:${plain} $*"; exit 1; }
 warning() { echo "${red}WARNING:${plain} $*"; }
 
+DRY_RUN=0
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY_RUN=1 ;;
+        *) error "Unknown option: $arg" ;;
+    esac
+done
+
 TEMP_DIR=$(mktemp -d)
 cleanup() { rm -rf $TEMP_DIR; }
 trap cleanup EXIT
@@ -38,6 +46,60 @@ case "$ARCH" in
     aarch64|arm64) ARCH="arm64" ;;
     *) error "Unsupported architecture: $ARCH" ;;
 esac
+
+build_from_source() {
+    if [ "$OS" != "Linux" ]; then
+        error "Source builds currently require Linux and Docker Buildx."
+    fi
+    for TOOL in git docker zstd; do
+        if ! available "$TOOL"; then
+            error "Source builds require '$TOOL' in PATH."
+        fi
+    done
+    DOCKER_COMMAND=docker
+    DOCKER_SUDO=
+    if ! docker info >/dev/null 2>&1; then
+        if available sudo && sudo docker info >/dev/null 2>&1; then
+            DOCKER_SUDO=sudo
+        else
+            error "Cannot access Docker Buildx. Add your user to the docker group, start Docker, or run this command with sudo."
+        fi
+    fi
+
+    SOURCE_REPOSITORY="${OLLAMA_SOURCE_REPOSITORY:-https://github.com/xInterlopeRx/ollama.git}"
+    SOURCE_REF="${OLLAMA_SOURCE_REF:-main}"
+    SOURCE_OUTPUT="${OLLAMA_SOURCE_OUTPUT:-$PWD/dist}"
+    SOURCE_PLATFORM="${OLLAMA_BUILD_PLATFORM:-linux/amd64}"
+    SOURCE_VARIANT="${OLLAMA_SOURCE_VARIANT:-full}"
+    SOURCE_DIR="$TEMP_DIR/ollama-source"
+
+    status "Cloning Ollama source from ${SOURCE_REPOSITORY} (${SOURCE_REF})..."
+    git clone --depth 1 --branch "$SOURCE_REF" "$SOURCE_REPOSITORY" "$SOURCE_DIR"
+    mkdir -p "$SOURCE_OUTPUT"
+
+    status "Building the ${SOURCE_VARIANT} local Linux payload with Docker Buildx..."
+    (
+        cd "$SOURCE_DIR"
+        if [ "$SOURCE_VARIANT" = rocm ]; then
+            DOCKER="$DOCKER_COMMAND" DOCKER_SUDO="$DOCKER_SUDO" PLATFORM="$SOURCE_PLATFORM" \
+                OLLAMA_BUILD_TARGET=image-archive OLLAMA_BUILD_FLAVOR=rocm \
+                ./scripts/build_linux.sh
+        else
+            DOCKER="$DOCKER_COMMAND" DOCKER_SUDO="$DOCKER_SUDO" PLATFORM="$SOURCE_PLATFORM" \
+                ./scripts/build_linux.sh
+        fi
+    )
+
+    cp "$SOURCE_DIR"/dist/ollama-linux-*.tar.zst "$SOURCE_OUTPUT/"
+    cp "$SOURCE_DIR/scripts/install.sh" "$SOURCE_OUTPUT/install.sh"
+    (cd "$SOURCE_OUTPUT" && sha256sum ollama-linux-*.tar.zst install.sh > sha256sum.txt)
+    status "Source build complete. Artifacts are in ${SOURCE_OUTPUT}."
+}
+
+if [ "$DRY_RUN" = 1 ] || [ "${OLLAMA_BUILD_FROM_SOURCE:-0}" = 1 ]; then
+    build_from_source
+    exit 0
+fi
 
 VER_PARAM="${OLLAMA_VERSION:+?version=$OLLAMA_VERSION}"
 OLLAMA_DOWNLOAD_BASE_URL="${OLLAMA_DOWNLOAD_BASE_URL:-https://ollama.com/download}"
@@ -333,7 +395,7 @@ if ! check_gpu lspci nvidia && ! check_gpu lshw nvidia && ! check_gpu lspci amdg
 fi
 
 if check_gpu lspci amdgpu || check_gpu lshw amdgpu; then
-    download_and_extract "https://ollama.com/download" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}-rocm"
+    download_and_extract "$OLLAMA_DOWNLOAD_BASE_URL" "$OLLAMA_INSTALL_DIR" "ollama-linux-${ARCH}-rocm"
 
     install_success
     status "AMD GPU ready."
