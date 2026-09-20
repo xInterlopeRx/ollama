@@ -41,7 +41,7 @@ rm -f dist/ollama-linux-*.tar.zst
 mkdir -p dist
 
 ${DOCKER_SUDO} ${DOCKER} buildx build \
-        --output type=local,dest=./dist/ \
+    -o type=local,dest=./dist/ \
         --platform=${PLATFORM} \
         ${BUILD_ARGS} \
         --target ${BUILD_TARGET} \
