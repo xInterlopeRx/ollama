@@ -50,8 +50,8 @@ build_from_source() {
     done
     DOCKER_COMMAND=docker
     DOCKER_SUDO=
-    if ! docker buildx version >/dev/null 2>&1; then
-        if available sudo && sudo docker buildx version >/dev/null 2>&1; then
+    if ! docker info >/dev/null 2>&1; then
+        if available sudo && sudo docker info >/dev/null 2>&1; then
             DOCKER_SUDO=sudo
         else
             error "Cannot access Docker Buildx. Add your user to the docker group, start Docker, or run this command with sudo."
