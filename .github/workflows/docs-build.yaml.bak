@@ -1,0 +1,92 @@
+name: docs-build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CMAKE_VERSION: 3.31.2
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: cpu
+            container: ubuntu:24.04
+            cmake_args: -DOLLAMA_LLAMA_BACKENDS= -DOLLAMA_MLX_BACKENDS=
+            target: ollama-local
+            artifact: ollama-linux-amd64-cpu
+          - name: rocm
+            container: rocm/dev-ubuntu-22.04:7.2.1
+            cmake_args: -DOLLAMA_LLAMA_BACKENDS=rocm_v7_2 -DOLLAMA_MLX_BACKENDS= -DAMDGPU_TARGETS=gfx1010 -DCMAKE_PREFIX_PATH=/opt/rocm
+            target: ollama-llama-server-rocm_v7_2
+            artifact: ollama-linux-amd64-rocm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential ca-certificates curl git zstd xz-utils
+
+          curl -fsSL "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" \
+            | tar xz -C /usr/local --strip-components 1
+
+          GO_VERSION=$(awk '/^go / { print $2 }' go.mod)
+          case "$(dpkg --print-architecture)" in
+            amd64) GO_ARCH=amd64 ;;
+            arm64) GO_ARCH=arm64 ;;
+            *) echo "Unsupported Go architecture: $(dpkg --print-architecture)" >&2; exit 1 ;;
+          esac
+          rm -rf /usr/local/go
+          curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz" \
+            | tar xz -C /usr/local
+          export PATH="/usr/local/go/bin:${PATH}"
+          go version
+          cmake --version | head -n 1
+
+      - name: Configure
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            ${{ matrix.cmake_args }}
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --target ${{ matrix.target }} --parallel
+
+      - name: Package build output
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/${{ matrix.artifact }}
+          cmake --install build --prefix "$PWD/dist/${{ matrix.artifact }}"
+          tar -C "dist/${{ matrix.artifact }}" -cf - . | zstd -19 -T0 >"${{ matrix.artifact }}.tar.zst"
+          cp scripts/install.sh "${{ matrix.artifact }}-install.sh"
+          sha256sum "${{ matrix.artifact }}.tar.zst" "${{ matrix.artifact }}-install.sh" >"${{ matrix.artifact }}.sha256"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}.tar.zst
+            ${{ matrix.artifact }}-install.sh
+            ${{ matrix.artifact }}.sha256
+          compression-level: 0
+          retention-days: 14
