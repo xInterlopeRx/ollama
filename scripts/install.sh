@@ -92,7 +92,14 @@ build_from_source() {
 
     SOURCE_REPOSITORY="${OLLAMA_SOURCE_REPOSITORY:-https://github.com/xInterlopeRx/ollama.git}"
     SOURCE_REF="${OLLAMA_SOURCE_REF:-main}"
-    SOURCE_OUTPUT="${OLLAMA_SOURCE_OUTPUT:-$PWD/dist}"
+    if [ -n "${OLLAMA_SOURCE_OUTPUT:-}" ]; then
+        SOURCE_OUTPUT="$OLLAMA_SOURCE_OUTPUT"
+    else
+        case "$PWD" in
+            */dist) SOURCE_OUTPUT="$PWD" ;;
+            *) SOURCE_OUTPUT="$PWD/dist" ;;
+        esac
+    fi
     SOURCE_PLATFORM="${OLLAMA_BUILD_PLATFORM:-linux/amd64}"
     SOURCE_VARIANT="${OLLAMA_SOURCE_VARIANT:-}"
     if [ -z "$SOURCE_VARIANT" ] && [ -z "${OLLAMA_NONINTERACTIVE:-}" ] && [ -r /dev/tty ]; then

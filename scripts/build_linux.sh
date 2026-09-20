@@ -74,7 +74,9 @@ elif echo $PLATFORM | grep "arm64" > /dev/null ; then
 elif echo $PLATFORM | grep "amd64" > /dev/null ; then
         tar c -C ./dist/ --exclude 'lib/ollama/rocm*' --exclude 'lib/ollama/mlx*' --exclude 'lib/ollama/include' bin lib | zstd -9 -T0 >./dist/ollama-linux-amd64.tar.zst
         ( cd ./dist/ && tar c lib/ollama/rocm_v* ) | zstd -9 -T0 >./dist/ollama-linux-amd64-rocm.tar.zst
-        ( cd ./dist/ && if [ -e lib/ollama/include ]; then tar c lib/ollama/mlx* lib/ollama/include; else tar c lib/ollama/mlx*; fi ) | zstd -9 -T0 >./dist/ollama-linux-amd64-mlx.tar.zst
+    if [ -e ./dist/lib/ollama/mlx_v* ] || [ -e ./dist/lib/ollama/include ]; then
+        ( cd ./dist/ && if [ -e lib/ollama/include ] && [ -e lib/ollama/mlx_v* ]; then tar c lib/ollama/mlx* lib/ollama/include; elif [ -e lib/ollama/include ]; then tar c lib/ollama/include; else tar c lib/ollama/mlx*; fi ) | zstd -9 -T0 >./dist/ollama-linux-amd64-mlx.tar.zst
+    fi
 fi
 
 LIMIT=2147483648
