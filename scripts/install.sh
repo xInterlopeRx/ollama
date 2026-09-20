@@ -15,6 +15,14 @@ status() { echo ">>> $*" >&2; }
 error() { echo "${red}ERROR:${plain} $*"; exit 1; }
 warning() { echo "${red}WARNING:${plain} $*"; }
 
+DRY_RUN=0
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY_RUN=1 ;;
+        *) error "Unknown option: $arg" ;;
+    esac
+done
+
 TEMP_DIR=$(mktemp -d)
 cleanup() { rm -rf $TEMP_DIR; }
 trap cleanup EXIT
@@ -88,7 +96,7 @@ build_from_source() {
     status "Source build complete. Artifacts are in ${SOURCE_OUTPUT}."
 }
 
-if [ "${OLLAMA_BUILD_FROM_SOURCE:-0}" = 1 ]; then
+if [ "$DRY_RUN" = 1 ] || [ "${OLLAMA_BUILD_FROM_SOURCE:-0}" = 1 ]; then
     build_from_source
     exit 0
 fi
