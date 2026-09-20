@@ -60,6 +60,16 @@ build_from_source() {
     DOCKER_SUDO=
     if ! docker info >/dev/null 2>&1; then
         if available sudo && sudo docker info >/dev/null 2>&1; then
+            DOCKER_USER="${SUDO_USER:-$(id -un)}"
+            if getent group docker >/dev/null 2>&1; then
+                if ! id -nG "$DOCKER_USER" | tr ' ' '\n' | grep -qx docker; then
+                    status "Adding ${DOCKER_USER} to the docker group..."
+                    sudo usermod -aG docker "$DOCKER_USER"
+                    status "Docker group access will be available after starting a new login session."
+                fi
+            else
+                warning "The docker group does not exist; continuing with sudo docker."
+            fi
             DOCKER_SUDO=sudo
         else
             error "Cannot access Docker Buildx. Add your user to the docker group, start Docker, or run this command with sudo."
