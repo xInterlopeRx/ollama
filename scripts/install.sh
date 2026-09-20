@@ -49,9 +49,10 @@ build_from_source() {
         fi
     done
     DOCKER_COMMAND=docker
+    DOCKER_SUDO=
     if ! docker buildx version >/dev/null 2>&1; then
         if available sudo && sudo docker buildx version >/dev/null 2>&1; then
-            DOCKER_COMMAND="sudo docker"
+            DOCKER_SUDO=sudo
         else
             error "Cannot access Docker Buildx. Add your user to the docker group, start Docker, or run this command with sudo."
         fi
@@ -72,11 +73,11 @@ build_from_source() {
     (
         cd "$SOURCE_DIR"
         if [ "$SOURCE_VARIANT" = rocm ]; then
-            DOCKER="$DOCKER_COMMAND" PLATFORM="$SOURCE_PLATFORM" \
+            DOCKER="$DOCKER_COMMAND" DOCKER_SUDO="$DOCKER_SUDO" PLATFORM="$SOURCE_PLATFORM" \
                 OLLAMA_BUILD_TARGET=image-archive OLLAMA_BUILD_FLAVOR=rocm \
                 ./scripts/build_linux.sh
         else
-            DOCKER="$DOCKER_COMMAND" PLATFORM="$SOURCE_PLATFORM" \
+            DOCKER="$DOCKER_COMMAND" DOCKER_SUDO="$DOCKER_SUDO" PLATFORM="$SOURCE_PLATFORM" \
                 ./scripts/build_linux.sh
         fi
     )

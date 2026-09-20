@@ -18,6 +18,7 @@ set -eu
 . $(dirname $0)/env.sh
 
 DOCKER=${DOCKER:-docker}
+DOCKER_SUDO=${DOCKER_SUDO:-}
 BUILD_TARGET=${OLLAMA_BUILD_TARGET:-archive}
 BUILD_ARGS=${OLLAMA_COMMON_BUILD_ARGS}
 if [ -n "${OLLAMA_BUILD_FLAVOR:-}" ]; then
@@ -39,7 +40,7 @@ rm -rf dist/bin dist/lib dist/linux_amd64 dist/linux_arm64
 rm -f dist/ollama-linux-*.tar.zst
 mkdir -p dist
 
-${DOCKER} buildx build \
+${DOCKER_SUDO} ${DOCKER} buildx build \
         --output type=local,dest=./dist/ \
         --platform=${PLATFORM} \
         ${BUILD_ARGS} \
