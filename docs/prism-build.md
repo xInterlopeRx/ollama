@@ -217,6 +217,9 @@ curl -fsSL https://raw.githubusercontent.com/xInterlopeRx/ollama/main/scripts/in
 ```
 
 Artifacts are written to `./dist` in the directory where the command runs.
+When run interactively, the source build prompts for automatic/full package
+support or ROCm-only before starting Docker. Set `OLLAMA_SOURCE_VARIANT=rocm`
+to skip the prompt and build only the ROCm image.
 Use these variables to select the source and output location:
 
 ```sh

@@ -86,7 +86,23 @@ build_from_source() {
     SOURCE_REF="${OLLAMA_SOURCE_REF:-main}"
     SOURCE_OUTPUT="${OLLAMA_SOURCE_OUTPUT:-$PWD/dist}"
     SOURCE_PLATFORM="${OLLAMA_BUILD_PLATFORM:-linux/amd64}"
-    SOURCE_VARIANT="${OLLAMA_SOURCE_VARIANT:-full}"
+    SOURCE_VARIANT="${OLLAMA_SOURCE_VARIANT:-}"
+    if [ -z "$SOURCE_VARIANT" ] && [ -z "${OLLAMA_NONINTERACTIVE:-}" ] && [ -r /dev/tty ]; then
+        echo "Select source build variant:" > /dev/tty
+        echo "  1) Automatic hardware support (full package matrix)" > /dev/tty
+        echo "  2) ROCm only" > /dev/tty
+        printf "Choice [1]: " > /dev/tty
+        IFS= read -r SOURCE_VARIANT_CHOICE < /dev/tty || SOURCE_VARIANT_CHOICE=1
+        case "$SOURCE_VARIANT_CHOICE" in
+            2) SOURCE_VARIANT=rocm ;;
+            *) SOURCE_VARIANT=full ;;
+        esac
+    fi
+    SOURCE_VARIANT="${SOURCE_VARIANT:-full}"
+    case "$SOURCE_VARIANT" in
+        full|rocm) ;;
+        *) error "Unsupported source build variant: $SOURCE_VARIANT (use full or rocm)" ;;
+    esac
     SOURCE_DIR="$TEMP_DIR/ollama-source"
 
     status "Cloning Ollama source from ${SOURCE_REPOSITORY} (${SOURCE_REF})..."
