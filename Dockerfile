@@ -224,12 +224,12 @@ ENV BLAS_INCLUDE_DIRS=/usr/include/openblas
 ENV LAPACK_INCLUDE_DIRS=/usr/include/openblas
 ENV CGO_LDFLAGS="-L/usr/local/cuda-13/lib64 -L/usr/local/cuda-13/targets/x86_64-linux/lib/stubs"
 WORKDIR /go/src/github.com/ollama/ollama
-COPY CMakeLists.txt CMakePresets.json .
+COPY CMakeLists.txt CMakePresets.json ./
 COPY cmake cmake
 COPY mlx mlx
 COPY mlxrunner/xgrammar/native mlxrunner/xgrammar/native
-COPY go.mod go.sum .
-COPY MLX_VERSION MLX_C_VERSION .
+COPY go.mod go.sum ./
+COPY MLX_VERSION MLX_C_VERSION ./
 RUN curl -fsSL https://golang.org/dl/go$(awk '/^go/ { print $2 }' go.mod).linux-$(case $(uname -m) in x86_64) echo amd64 ;; aarch64) echo arm64 ;; esac).tar.gz | tar xz -C /usr/local
 ENV PATH=/usr/local/go/bin:$PATH
 RUN go mod download
@@ -254,7 +254,7 @@ COPY --from=mlx /go/src/github.com/ollama/ollama/dist/lib/ollama /lib/ollama/
 
 FROM base AS build
 WORKDIR /go/src/github.com/ollama/ollama
-COPY go.mod go.sum .
+COPY go.mod go.sum ./
 RUN curl -fsSL https://golang.org/dl/go$(awk '/^go/ { print $2 }' go.mod).linux-$(case $(uname -m) in x86_64) echo amd64 ;; aarch64) echo arm64 ;; esac).tar.gz | tar xz -C /usr/local
 ENV PATH=/usr/local/go/bin:$PATH
 RUN go mod download
