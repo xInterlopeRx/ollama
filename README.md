@@ -146,7 +146,7 @@ cmake -B build . \
 cmake --build build --parallel 8
 ```
 
-The default build uses Prism-ML llama.cpp at commit `520d93d8`. To build against
+The default build uses PrismML-Eng llama.cpp at commit `9a9394a8`. To build against
 the upstream `ggml-org/llama.cpp` repository instead, provide all overrides:
 
 ```shell

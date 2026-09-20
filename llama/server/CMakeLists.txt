@@ -129,6 +129,9 @@ option(OLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH
 option(OLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH
     "Use compatibility hooks rebased for the Prism-ML llama.cpp fork"
     ON)
+option(OLLAMA_LLAMA_CPP_SKIP_COMPAT_PATCH
+    "Skip llama.cpp compatibility patch application for forks with native Ollama support"
+    ON)
 
 # Ollama-compat shim: overlays the fetched llama.cpp source with a small
 # in-memory translation layer for existing published model blobs.
@@ -140,9 +143,6 @@ option(OLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH
 # apply the patch by hand while iterating on the compat layer.
 set(_ollama_compat_patch_cmd "")
 include(${CMAKE_CURRENT_SOURCE_DIR}/../compat/compat.cmake)
-option(OLLAMA_LLAMA_CPP_SKIP_COMPAT_PATCH
-    "Skip llama.cpp compat patch application because the source is already prepared"
-    OFF)
 set(_ollama_link_compat_sources OFF)
 if(OLLAMA_LLAMA_CPP_SKIP_COMPAT_PATCH)
     set(_ollama_link_compat_sources ON)
@@ -187,7 +187,7 @@ set(LLAMA_OPENSSL OFF CACHE BOOL "" FORCE)
 set(LLAMA_SUBPROCESS OFF CACHE BOOL "" FORCE)
 
 set(OLLAMA_LLAMA_CPP_REPOSITORY
-    "https://github.com/Mintplex-Labs/prism-ml-llama.cpp.git"
+    "https://github.com/PrismML-Eng/llama.cpp.git"
     CACHE STRING "llama.cpp Git repository")
 
 FetchContent_Declare(

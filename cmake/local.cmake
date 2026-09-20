@@ -119,6 +119,9 @@ else()
     option(OLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH
         "Use compatibility hooks rebased for the Prism-ML llama.cpp fork"
         ON)
+    option(OLLAMA_LLAMA_CPP_SKIP_COMPAT_PATCH
+        "Skip llama.cpp compatibility patch application for forks with native Ollama support"
+        ON)
     include(${CMAKE_SOURCE_DIR}/llama/compat/compat.cmake)
     if(DEFINED FETCHCONTENT_SOURCE_DIR_LLAMA_CPP AND NOT "${FETCHCONTENT_SOURCE_DIR_LLAMA_CPP}" STREQUAL "")
         get_filename_component(OLLAMA_LLAMA_CPP_SOURCE_DIR
@@ -133,7 +136,7 @@ else()
     else()
         set(OLLAMA_LLAMA_CPP_SOURCE_DIR "${CMAKE_BINARY_DIR}/_deps/llama_cpp-src")
         set(OLLAMA_LLAMA_CPP_REPOSITORY
-            "https://github.com/Mintplex-Labs/prism-ml-llama.cpp.git"
+            "https://github.com/PrismML-Eng/llama.cpp.git"
             CACHE STRING "llama.cpp Git repository")
         ExternalProject_Add(ollama-llama-cpp-source
             GIT_REPOSITORY ${OLLAMA_LLAMA_CPP_REPOSITORY}

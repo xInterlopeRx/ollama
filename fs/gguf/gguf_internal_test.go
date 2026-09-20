@@ -138,6 +138,8 @@ func TestCurrentTensorTypes(t *testing.T) {
 		{value: TensorTypeQ1_0, number: 41, name: "q1_0", blockSize: 128, typeSize: 18},
 		{value: tensorTypeTQ1_0, number: 34, name: "tq1_0", blockSize: 256, typeSize: 54},
 		{value: tensorTypeTQ2_0, number: 35, name: "tq2_0", blockSize: 256, typeSize: 66},
+		{value: TensorTypePQ2_0, number: 142, name: "pq2_0", blockSize: 128, typeSize: 34},
+		{value: TensorTypePTQ1_0, number: 143, name: "ptq1_0", blockSize: 128, typeSize: 28},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := uint32(tt.value); got != tt.number {

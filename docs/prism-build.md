@@ -1,10 +1,10 @@
 # Prism-ML Builds
 
-This repository builds against the Prism-ML llama.cpp fork by default:
+This repository builds against the PrismML-Eng llama.cpp fork by default:
 
 ```text
-Repository: https://github.com/Mintplex-Labs/prism-ml-llama.cpp.git
-Commit:     520d93d8a8fd0ac84c0fa92d4568a68b14d495f0
+Repository: https://github.com/PrismML-Eng/llama.cpp.git
+Commit:     9a9394a895b96003ca842a6041cb28ac49a108f7
 ```
 
 The default compatibility settings are:
@@ -12,6 +12,7 @@ The default compatibility settings are:
 ```text
 OLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH=ON
 OLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH=ON
+OLLAMA_LLAMA_CPP_SKIP_COMPAT_PATCH=ON
 ```
 
 The Laguna patch is skipped because the Prism fork does not contain

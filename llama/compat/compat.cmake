@@ -34,35 +34,29 @@ get_filename_component(_ollama_patch_applier
 # Instead, llama/server/CMakeLists.txt does target_sources() on the llama
 # target after FetchContent_MakeAvailable. That keeps Ollama's code in
 # Ollama's tree and makes the patch pure call-site insertions.
-set(_ollama_compat_patch_args)
-if(OLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH)
-    list(APPEND _ollama_compat_patch_args -DPATCH_EXCLUDE_HOOKS=001-upstream-llama-cpp-hooks.patch)
+if(OLLAMA_LLAMA_CPP_SKIP_COMPAT_PATCH)
+    set(OLLAMA_LLAMA_CPP_COMPAT_PATCH_COMMAND
+        ${CMAKE_COMMAND} -E true
+        CACHE INTERNAL "llama.cpp compatibility patch command for native Prism support")
 else()
-    list(APPEND _ollama_compat_patch_args -DPATCH_EXCLUDE_HOOKS=001-llama-cpp-hooks.patch)
+    set(_ollama_compat_patch_args)
+    if(OLLAMA_LLAMA_CPP_USE_PRISM_COMPAT_PATCH)
+        list(APPEND _ollama_compat_patch_args -DPATCH_EXCLUDE_HOOKS=001-upstream-llama-cpp-hooks.patch)
+    else()
+        list(APPEND _ollama_compat_patch_args -DPATCH_EXCLUDE_HOOKS=001-llama-cpp-hooks.patch)
+    endif()
+    if(OLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH)
+        list(APPEND _ollama_compat_patch_args -DPATCH_EXCLUDE_LAGUNA=models/003-llama-cpp-laguna-metal.patch)
+    endif()
+
+    set(OLLAMA_LLAMA_CPP_COMPAT_PATCH_COMMAND
+        ${CMAKE_COMMAND}
+            -DPATCH_DIR=${_compat_dir}
+            -DPATCH_LABEL=llama/compat
+            ${_ollama_compat_patch_args}
+            -P ${_ollama_patch_applier}
+        CACHE INTERNAL "llama.cpp compat patch command for fetched sources")
 endif()
-if(OLLAMA_LLAMA_CPP_SKIP_LAGUNA_METAL_PATCH)
-    list(APPEND _ollama_compat_patch_args -DPATCH_EXCLUDE_LAGUNA=models/003-llama-cpp-laguna-metal.patch)
-endif()
-
-set(OLLAMA_LLAMA_CPP_COMPAT_PATCH_COMMAND
-    ${CMAKE_COMMAND}
-        -DPATCH_DIR=${_compat_dir}
-        -DPATCH_LABEL=llama/compat
-        ${_ollama_compat_patch_args}
-        -P ${_ollama_patch_applier}
-    CACHE INTERNAL "llama.cpp compat patch command for FetchContent")
-
-# Where the compat source files live, so the main CMakeLists can wire them
-# into the llama.cpp targets that need the hooks.
-set(OLLAMA_LLAMA_CPP_COMPAT_DIR
-    "${_compat_dir}"
-    CACHE INTERNAL "Directory holding llama.cpp compat sources")
-
-# Also export the individual paths in case callers want to do something
-# custom (e.g. emit a dependency on the patch so reconfigures re-apply).
-set(OLLAMA_LLAMA_CPP_COMPAT_PATCH_FILE
-    "${_compat_dir}/001-llama-cpp-hooks.patch"
-    CACHE INTERNAL "Path to the llama.cpp compat patch")
 
 set(OLLAMA_LLAMA_CPP_COMPAT_SOURCES
     "${_compat_dir}/llama-ollama-compat.h"
