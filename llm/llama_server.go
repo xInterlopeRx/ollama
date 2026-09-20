@@ -572,11 +572,8 @@ func embeddingBatchSize(opts api.Options, numParallel int) int {
 
 func appendLlamaServerLogArgs(params []string) []string {
 	// Keep startup memory/offload lines visible for scheduler accounting.
-	return append(params,
-		"--log-verbosity", "4",
-		"--no-log-prefix",
-		"--no-log-timestamps",
-	)
+	// Prism's llama-server does not support the newer log formatting flags.
+	return append(params, "--log-verbosity", "4")
 }
 
 func appendBatchArgs(params []string, opts api.Options, embedding bool, numParallel int) []string {
