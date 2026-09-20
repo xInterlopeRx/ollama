@@ -61,16 +61,24 @@ build_from_source() {
     SOURCE_REF="${OLLAMA_SOURCE_REF:-main}"
     SOURCE_OUTPUT="${OLLAMA_SOURCE_OUTPUT:-$PWD/dist}"
     SOURCE_PLATFORM="${OLLAMA_BUILD_PLATFORM:-linux/amd64}"
+    SOURCE_VARIANT="${OLLAMA_SOURCE_VARIANT:-full}"
     SOURCE_DIR="$TEMP_DIR/ollama-source"
 
     status "Cloning Ollama source from ${SOURCE_REPOSITORY} (${SOURCE_REF})..."
     git clone --depth 1 --branch "$SOURCE_REF" "$SOURCE_REPOSITORY" "$SOURCE_DIR"
     mkdir -p "$SOURCE_OUTPUT"
 
-    status "Building the full local Linux payload with Docker Buildx..."
+    status "Building the ${SOURCE_VARIANT} local Linux payload with Docker Buildx..."
     (
         cd "$SOURCE_DIR"
-        DOCKER="$DOCKER_COMMAND" PLATFORM="$SOURCE_PLATFORM" ./scripts/build_linux.sh
+        if [ "$SOURCE_VARIANT" = rocm ]; then
+            DOCKER="$DOCKER_COMMAND" PLATFORM="$SOURCE_PLATFORM" \
+                OLLAMA_BUILD_TARGET=image-archive OLLAMA_BUILD_FLAVOR=rocm \
+                ./scripts/build_linux.sh
+        else
+            DOCKER="$DOCKER_COMMAND" PLATFORM="$SOURCE_PLATFORM" \
+                ./scripts/build_linux.sh
+        fi
     )
 
     cp "$SOURCE_DIR"/dist/ollama-linux-*.tar.zst "$SOURCE_OUTPUT/"

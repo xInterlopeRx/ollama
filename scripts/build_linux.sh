@@ -18,6 +18,11 @@ set -eu
 . $(dirname $0)/env.sh
 
 DOCKER=${DOCKER:-docker}
+BUILD_TARGET=${OLLAMA_BUILD_TARGET:-archive}
+BUILD_ARGS=${OLLAMA_COMMON_BUILD_ARGS}
+if [ -n "${OLLAMA_BUILD_FLAVOR:-}" ]; then
+    BUILD_ARGS="$BUILD_ARGS --build-arg=FLAVOR=$OLLAMA_BUILD_FLAVOR"
+fi
 
 # Check for required tools
 if ! command -v zstd >/dev/null 2>&1; then
@@ -37,8 +42,8 @@ mkdir -p dist
 ${DOCKER} buildx build \
         --output type=local,dest=./dist/ \
         --platform=${PLATFORM} \
-        ${OLLAMA_COMMON_BUILD_ARGS} \
-        --target archive \
+        ${BUILD_ARGS} \
+        --target ${BUILD_TARGET} \
         -f Dockerfile \
         .
 

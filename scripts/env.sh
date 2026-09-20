@@ -29,7 +29,8 @@ for arg in \
     MLX_CUDA_RAM_MB \
     APT_MIRROR \
     OLLAMA_MLX_BUILD_JOBS \
-    OLLAMA_MLX_NVCC_THREADS
+    OLLAMA_MLX_NVCC_THREADS \
+    OLLAMA_BUILD_FLAVOR
 do
     add_build_arg "$arg"
 done
