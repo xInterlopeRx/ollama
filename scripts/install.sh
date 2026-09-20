@@ -39,6 +39,46 @@ case "$ARCH" in
     *) error "Unsupported architecture: $ARCH" ;;
 esac
 
+build_from_source() {
+    if [ "$OS" != "Linux" ]; then
+        error "Source builds currently require Linux and Docker Buildx."
+    fi
+    for TOOL in git docker zstd; do
+        if ! available "$TOOL"; then
+            error "Source builds require '$TOOL' in PATH."
+        fi
+    done
+    if ! docker buildx version >/dev/null 2>&1; then
+        error "Source builds require Docker Buildx."
+    fi
+
+    SOURCE_REPOSITORY="${OLLAMA_SOURCE_REPOSITORY:-https://github.com/xInterlopeRx/ollama.git}"
+    SOURCE_REF="${OLLAMA_SOURCE_REF:-main}"
+    SOURCE_OUTPUT="${OLLAMA_SOURCE_OUTPUT:-$PWD/dist}"
+    SOURCE_PLATFORM="${OLLAMA_BUILD_PLATFORM:-linux/amd64}"
+    SOURCE_DIR="$TEMP_DIR/ollama-source"
+
+    status "Cloning Ollama source from ${SOURCE_REPOSITORY} (${SOURCE_REF})..."
+    git clone --depth 1 --branch "$SOURCE_REF" "$SOURCE_REPOSITORY" "$SOURCE_DIR"
+    mkdir -p "$SOURCE_OUTPUT"
+
+    status "Building the full local Linux payload with Docker Buildx..."
+    (
+        cd "$SOURCE_DIR"
+        PLATFORM="$SOURCE_PLATFORM" ./scripts/build_linux.sh
+    )
+
+    cp "$SOURCE_DIR"/dist/ollama-linux-*.tar.zst "$SOURCE_OUTPUT/"
+    cp "$SOURCE_DIR/scripts/install.sh" "$SOURCE_OUTPUT/install.sh"
+    (cd "$SOURCE_OUTPUT" && sha256sum ollama-linux-*.tar.zst install.sh > sha256sum.txt)
+    status "Source build complete. Artifacts are in ${SOURCE_OUTPUT}."
+}
+
+if [ "${OLLAMA_BUILD_FROM_SOURCE:-0}" = 1 ]; then
+    build_from_source
+    exit 0
+fi
+
 VER_PARAM="${OLLAMA_VERSION:+?version=$OLLAMA_VERSION}"
 OLLAMA_DOWNLOAD_BASE_URL="${OLLAMA_DOWNLOAD_BASE_URL:-https://ollama.com/download}"
 
