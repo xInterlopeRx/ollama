@@ -19,7 +19,7 @@ The Laguna patch is skipped because the Prism fork does not contain
 
 ## Prerequisites
 
-Install CMake 3.24 or newer, Go, a C/C++ compiler, Git, and the backend
+Install CMake 3.22 or newer, Go, a C/C++ compiler, Git, and the backend
 SDK required by the target. For ROCm, install the host ROCm/HIP stack and
 ensure `cmake`, `hipcc`, and the ROCm libraries are available.
 

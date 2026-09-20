@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.22)
 project(ollama-llama-server C CXX)
 
 # Handle cross-compilation on macOS: when CMAKE_OSX_ARCHITECTURES is set to a

@@ -7,7 +7,7 @@ see [Prism-ML builds](./prism-build.md).
 Install prerequisites:
 
 - [Go](https://go.dev/doc/install)
-- [CMake](https://cmake.org/download/) 3.24 or newer
+- [CMake](https://cmake.org/download/) 3.22 or newer
 - C/C++ compiler: Clang on macOS, Visual Studio 2022 C++ tools on Windows, or GCC/Clang on Linux
 - [Ninja](https://github.com/ninja-build/ninja/releases) in `PATH` is recommended, especially on Windows
 
