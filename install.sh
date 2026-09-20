@@ -41,6 +41,20 @@ cleanup() {
 trap cleanup EXIT
 
 available() { command -v $1 >/dev/null; }
+default_source_output() {
+    if [ -n "${HOME:-}" ]; then
+        printf '%s/dist\n' "$HOME"
+    elif available getent; then
+        USER_HOME=$(getent passwd "$(id -un)" | cut -d: -f6)
+        if [ -n "$USER_HOME" ]; then
+            printf '%s/dist\n' "$USER_HOME"
+            return
+        fi
+        printf '%s/dist\n' "$PWD"
+    else
+        printf '%s/dist\n' "$PWD"
+    fi
+}
 require() {
     local MISSING=''
     for TOOL in $*; do
@@ -92,14 +106,7 @@ build_from_source() {
 
     SOURCE_REPOSITORY="${OLLAMA_SOURCE_REPOSITORY:-https://github.com/xInterlopeRx/ollama.git}"
     SOURCE_REF="${OLLAMA_SOURCE_REF:-main}"
-    if [ -n "${OLLAMA_SOURCE_OUTPUT:-}" ]; then
-        SOURCE_OUTPUT="$OLLAMA_SOURCE_OUTPUT"
-    else
-        case "$PWD" in
-            */dist) SOURCE_OUTPUT="$PWD" ;;
-            *) SOURCE_OUTPUT="$PWD/dist" ;;
-        esac
-    fi
+    SOURCE_OUTPUT="${OLLAMA_SOURCE_OUTPUT:-$(default_source_output)}"
     SOURCE_PLATFORM="${OLLAMA_BUILD_PLATFORM:-linux/amd64}"
     SOURCE_VARIANT="${OLLAMA_SOURCE_VARIANT:-}"
     if [ -z "$SOURCE_VARIANT" ] && [ -z "${OLLAMA_NONINTERACTIVE:-}" ] && [ -r /dev/tty ]; then
@@ -151,7 +158,7 @@ fi
 VER_PARAM="${OLLAMA_VERSION:+?version=$OLLAMA_VERSION}"
 OLLAMA_DOWNLOAD_BASE_URL="${OLLAMA_DOWNLOAD_BASE_URL:-https://ollama.com/download}"
 if [ "$INSTALL" = 1 ]; then
-    OLLAMA_DOWNLOAD_BASE_URL="${OLLAMA_INSTALL_SOURCE_OUTPUT:-${OLLAMA_SOURCE_OUTPUT:-$PWD/dist}}"
+    OLLAMA_DOWNLOAD_BASE_URL="${OLLAMA_INSTALL_SOURCE_OUTPUT:-${OLLAMA_SOURCE_OUTPUT:-$(default_source_output)}}"
     if [ ! -d "$OLLAMA_DOWNLOAD_BASE_URL" ]; then
         error "Local build output not found: $OLLAMA_DOWNLOAD_BASE_URL"
     fi
