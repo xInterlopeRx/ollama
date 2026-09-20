@@ -215,6 +215,10 @@ func (tt TensorType) typeSize() int64 {
 		return 8
 	case tensorTypeIQ1_M:
 		return tt.blockSize()/8 + tt.blockSize()/16 + tt.blockSize()/32
+	case tensorTypeTQ1_0:
+		return 2 + tt.blockSize()/64 + (tt.blockSize() - 4*tt.blockSize()/64)/5
+	case tensorTypeTQ2_0:
+		return 2 + tt.blockSize()/4
 	case TensorTypeBF16:
 		return 2
 	case TensorTypeMXFP4:
@@ -297,6 +301,9 @@ func (tt TensorType) String() string {
 		return "iq2_xs"
 	case tensorTypeIQ3_XXS:
 		return "iq3_xxs"
+	case tensorTypeTQ1_0,
+		tensorTypeTQ2_0:
+		return 256
 	case tensorTypeIQ1_S:
 		return "iq1_s"
 	case tensorTypeIQ4_NL:
