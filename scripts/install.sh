@@ -565,4 +565,4 @@ status "NVIDIA GPU ready."
 install_success
 }
 
-main
+main "$@"
