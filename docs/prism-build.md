@@ -248,6 +248,17 @@ can require substantial Docker storage. The source clone is temporary; only
 the generated archives, installer, and checksum file remain in
 `OLLAMA_SOURCE_OUTPUT`.
 
+After a successful dry-run, complete the host installation from those local
+archives with:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/xInterlopeRx/ollama/main/scripts/install.sh | \
+  sh -s -- --install
+```
+
+This uses `./dist` by default, or `OLLAMA_INSTALL_SOURCE_OUTPUT` when the
+archives were written elsewhere. It does not download the Ollama payload.
+
 If the Docker builder does not have enough storage for the full Vulkan, CUDA,
 MLX, and ROCm matrix, build only the CPU+ROCm image:
 

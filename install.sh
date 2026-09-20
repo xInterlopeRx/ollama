@@ -16,12 +16,18 @@ error() { echo "${red}ERROR:${plain} $*"; exit 1; }
 warning() { echo "${red}WARNING:${plain} $*"; }
 
 DRY_RUN=0
+INSTALL=0
 for arg in "$@"; do
     case "$arg" in
         --dry-run) DRY_RUN=1 ;;
+        --install) INSTALL=1 ;;
         *) error "Unknown option: $arg" ;;
     esac
 done
+
+if [ "$DRY_RUN" = 1 ] && [ "$INSTALL" = 1 ]; then
+    error "Use --dry-run and --install as separate steps."
+fi
 
 TEMP_DIR=$(mktemp -d)
 cleanup() { rm -rf $TEMP_DIR; }
@@ -113,6 +119,13 @@ fi
 
 VER_PARAM="${OLLAMA_VERSION:+?version=$OLLAMA_VERSION}"
 OLLAMA_DOWNLOAD_BASE_URL="${OLLAMA_DOWNLOAD_BASE_URL:-https://ollama.com/download}"
+if [ "$INSTALL" = 1 ]; then
+    OLLAMA_DOWNLOAD_BASE_URL="${OLLAMA_INSTALL_SOURCE_OUTPUT:-${OLLAMA_SOURCE_OUTPUT:-$PWD/dist}}"
+    if [ ! -d "$OLLAMA_DOWNLOAD_BASE_URL" ]; then
+        error "Local build output not found: $OLLAMA_DOWNLOAD_BASE_URL"
+    fi
+    status "Installing from local archives in $OLLAMA_DOWNLOAD_BASE_URL"
+fi
 
 ###########################################
 # macOS
