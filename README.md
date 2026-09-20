@@ -106,7 +106,30 @@ See the [API documentation](https://docs.ollama.com/api) for all endpoints.
 
 ## Building from source
 
-Install CMake 3.24 or newer, a C/C++ compiler, and Go. From the repository root:
+The custom Prism-ML build is supported on Linux only. Use Ubuntu 26.04 or an
+equivalent recent Linux distribution. Darwin/macOS is not supported by this
+custom Prism build.
+
+For a native Linux build, install Git, a C/C++ toolchain, CMake 3.22 or newer,
+Ninja, and Go. On Ubuntu/Debian:
+
+```shell
+sudo apt update
+sudo apt install build-essential cmake git golang-go ninja-build
+```
+
+For the Docker packaging and curl-based source installer, also install Docker
+with the Buildx plugin and zstd:
+
+```shell
+sudo apt install docker.io docker-buildx-plugin zstd
+sudo usermod -aG docker "$USER"
+```
+
+Start a new login session after adding yourself to the `docker` group. The
+installer can use `sudo docker` for the current session when needed.
+
+From the repository root, a native build is:
 
 ```shell
 cmake -B build .
@@ -149,7 +172,8 @@ OLLAMA_DOWNLOAD_BASE_URL=http://127.0.0.1:8000 \
   sh scripts/install.sh
 ```
 
-Linux archives use `.tar.zst` (with `.tgz` fallback); macOS uses `.zip`.
+Linux archives use `.tar.zst` (with `.tgz` fallback). The custom Prism build
+does not produce Darwin/macOS archives.
 
 See the [full development guide](docs/development.md) for prerequisites and platform-specific builds.
 
